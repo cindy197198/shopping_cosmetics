@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<b:beans xmlns:b="http://www.springframework.org/schema/beans"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://www.springframework.org/schema/security"
+         xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/security https://www.springframework.org/schema/security/spring-security.xsd">
+    <http use-expressions="true" pattern="/admincp/**">
+        <csrf disabled="true"/>
+        <intercept-url pattern="/admincp/index" access="hasAnyRole('ROLE_ADMIN','ROLE_MOD')"/>
+        <intercept-url pattern="/admincp/user/edit-profile/*" access="hasAnyRole('ROLE_ADMIN','ROLE_MOD')"/>
+        <intercept-url pattern="/admincp/cat" access="hasAnyRole('ROLE_ADMIN','ROLE_MOD')"/>
+        <intercept-url pattern="/admincp/cat/**" access="hasAnyRole('ROLE_ADMIN','ROLE_MOD')"/>
+        <intercept-url pattern="/admincp/product" access="hasAnyRole('ROLE_ADMIN','ROLE_MOD')"/>
+        <intercept-url pattern="/admincp/product/**" access="hasAnyRole('ROLE_ADMIN','ROLE_MOD')"/>
+        <intercept-url pattern="/admincp/*/tim-kiem/**" access="hasAnyRole('ROLE_ADMIN','ROLE_MOD')"/>
+        <intercept-url pattern="/admincp/contact" access="hasAnyRole('ROLE_ADMIN','ROLE_MOD')"/>
+        <intercept-url pattern="/admincp/proceeds" access="hasAnyRole('ROLE_ADMIN','ROLE_MOD')"/>
+        <intercept-url pattern="/admincp/coupon" access="hasAnyRole('ROLE_ADMIN','ROLE_MOD')"/>
+        <intercept-url pattern="/admincp/coupon/**" access="hasAnyRole('ROLE_ADMIN','ROLE_MOD')"/>
+        <intercept-url pattern="/admincp/**" access="hasAnyRole('ROLE_ADMIN')"/>
+        <form-login login-page="/admin-login"
+                    login-processing-url="/admincp/admin-login"
+                    password-parameter="password"
+                    username-parameter="username"
+                    default-target-url="/admincp/index"
+                    always-use-default-target="false"
+                    authentication-failure-url="/admin-login?msg=error"
+
+        />
+        <logout
+                logout-url="/admincp/admin-logout"
+                logout-success-url="/admin-login"
+                invalidate-session="true"
+        />
+        <access-denied-handler error-page="/admincp/auth/403"/>
+    </http>
+    <http use-expressions="true" pattern="/**">
+        <csrf disabled="true"/>
+        <intercept-url pattern="/my-account" access="permitAll()"/>
+        <intercept-url pattern="/my-account/order" access="permitAll()"/>
+        <intercept-url pattern="/chi-tiet/*" access="permitAll()"/>
+        <intercept-url pattern="/danh-muc/*" access="permitAll()"/>
+        <form-login login-page="/customer-login"
+                    login-processing-url="/customer-login"
+                    password-parameter="password"
+                    username-parameter="username"
+                    default-target-url="/"
+                    always-use-default-target="false"
+                    authentication-failure-url="/customer-login?msg=error"
+
+        />
+        <logout
+                logout-url="/customer-logout"
+                logout-success-url="/"
+                invalidate-session="true"
+        />
+        <access-denied-handler error-page="/auth/403"/>
+    </http>
+
+    <user-service>
+        <user name="admin" password="123456" authorities="ROLE_ADMIN" locked="false" disabled="false"/>
+        <user name="trang" password="123456" authorities="ROLE_ADMIN"/>
+    </user-service>
+
+    <b:bean id="BCryptPasswordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder">
+    </b:bean>
+
+    <authentication-manager>
+        <authentication-provider>
+            <jdbc-user-service data-source-ref="dataSource"
+                               users-by-username-query="SELECT username,password,active FROM users WHERE username=?"
+                               authorities-by-username-query="SELECT username, concat('ROLE_',name) role FROM users u INNER JOIN roles r
+																ON u.roleId=r.Id WHERE username=?"
+            />
+            <password-encoder hash="bcrypt" ref="BCryptPasswordEncoder"/>
+        </authentication-provider>
+    </authentication-manager>
+</b:beans>
